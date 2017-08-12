@@ -1,0 +1,28 @@
+{
+  "name": "storybook3-ts-example",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@types/jest": "^20.0.6",
+    "@types/node": "^8.0.20",
+    "@types/react": "^16.0.2",
+    "@types/react-dom": "^15.5.2",
+    "@types/storybook__addon-actions": "^3.0.1",
+    "@types/storybook__addon-links": "^3.0.1",
+    "@types/storybook__react": "^3.0.3",
+    "react": "^15.6.1",
+    "react-dom": "^15.6.1",
+    "react-scripts-ts": "2.6.0"
+  },
+  "scripts": {
+    "start": "react-scripts-ts start",
+    "build": "react-scripts-ts build",
+    "test": "react-scripts-ts test --env=jsdom",
+    "eject": "react-scripts-ts eject",
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook"
+  },
+  "devDependencies": {
+    "@storybook/react": "^3.2.3"
+  }
+}
