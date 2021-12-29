@@ -207,7 +207,7 @@ jobs:
           script: |
             const execa = require('execa');
 
-            const {issue: {number: pull_number}, repo: {owner, repo}} = context;
+            const {issue: {number: pull_number}, repo: {owner, repo}, sha} = context;
 
             const config = require('./regconfig.json');
             const bucketName = config.plugins['reg-publish-gcs-plugin'].bucketName;
@@ -226,5 +226,5 @@ jobs:
             const config = require('./regconfig.json');
             const bucketName = config.plugins['reg-publish-gcs-plugin'].bucketName;
 
-            console.log(`sha: ${github.sha}, ref: ${github.ref}`);
-            execa.command(`gsutil cp -r ./__screenshots__/components gs://${bucketName}/${github.ref}/actual`);
+            console.log(`sha: ${context.sha}, ref: ${context.ref}`);
+            execa.command(`gsutil cp -r ./__screenshots__/components gs://${bucketName}/${sha}/actual`);
