@@ -1,0 +1,229 @@
+name: Visual Regression Test
+
+on:
+  pull_request:
+    types: [synchronize, opened, reopened, closed]
+
+env:
+  GCP_PROJECT: dev-satsuki
+  GCP_REGION: asia-northeast1
+  APP_ENV: 'test'
+
+jobs:
+  regressionTest:
+    if: github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'synchronize'
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: ['16.13.1']
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{github.event.pull_request.head.ref}}
+
+      - name: checkout branch
+        run: |
+         git checkout ${HASH_AND_BRANCH##*remotes/origin/}
+         git fetch --prune --unshallow
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+          registry-url: 'https://npm.pkg.github.com'
+
+      - name: install deps
+        run: yarn --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - uses: google-github-actions/setup-gcloud@master
+        with:
+          version: 335.0.0
+          service_account_email: ${{ secrets.DEV_FUJIMI_GCP_SA_EMAIL }}
+          service_account_key: ${{ secrets.DEV_FUJIMI_GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: storycap
+        run: yarn storycap
+
+      - name: regression
+        run: yarn regression
+
+      - name: remove comment to gitHub
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const {issue: {number: issue_number}, repo: {owner, repo}} = context;
+
+            const {data} = await github.rest.issues.listComments({issue_number, owner, repo});
+            data
+              .filter((item) => item.body.startsWith(':art: Visual Regression Test :art:'))
+              .forEach((item) => {
+                github.rest.issues.deleteComment({
+                  comment_id: item.id,
+                  owner,
+                  repo,
+                });
+              });
+
+      - name: add new comment to gitHub
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const {issue: {number: issue_number}, repo: {owner, repo}} = context;
+
+            const count = require('.reg/out.json');
+            const config = require('./regconfig.json');
+            const bucketName = config.plugins['reg-publish-gcs-plugin'].bucketName;
+
+            github.rest.issues.createComment({
+              issue_number,
+              owner,
+              repo,
+              body: `:art: Visual Regression Test :art:
+                :white_circle: ${ count.newItems.length } items added
+                :red_circle: ${ count.diffItems.length } items changed
+                :black_circle: ${ count.deletedItems.length } items deleted
+                :large_blue_circle: ${ count.passedItems.length } items passed
+                [レポート](https://storage.googleapis.com/${ bucketName }/${{ github.event.pull_request.head.sha }}/index.html)を確認してください。`,
+            });
+
+  removeVRT:
+    if: github.event.action == 'closed' && github.event.pull_request.merged == false
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{github.event.pull_request.head.ref}}
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+          registry-url: 'https://npm.pkg.github.com'
+
+      - name: install deps
+        run: yarn --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: remove comment to gitHub
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const {issue: {number: issue_number}, repo: {owner, repo}} = context;
+
+            const {data} = await github.rest.issues.listComments({issue_number, owner, repo});
+            data
+              .filter((item) => item.body.startsWith(':art: Visual Regression Test :art:'))
+              .forEach((item) => {
+                github.rest.issues.deleteComment({
+                  comment_id: item.id,
+                  owner,
+                  repo,
+                });
+              });
+
+      - name: add execa
+        run: yarn add execa@5.1.1
+
+      - name: cleanup GCS
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const execa = require('execa');
+
+            const {issue: {number: pull_number}, repo: {owner, repo}} = context;
+
+            const config = require('./regconfig.json');
+            const bucketName = config.plugins['reg-publish-gcs-plugin'].bucketName;
+
+            const {data} = await github.rest.pulls.listCommits({owner, repo, pull_number, per_page: 100});
+            for (const item of data) {
+              await execa.command(`gsutil -m rm -fr gs://${bucketName}/${item.sha}`).then(() => resolv()).catch(e => {});
+            }
+
+
+  cleanupVRT:
+    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{github.event.pull_request.head.ref}}
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+          registry-url: 'https://npm.pkg.github.com'
+
+      - name: install deps
+        run: yarn --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - uses: google-github-actions/setup-gcloud@master
+        with:
+          version: 335.0.0
+          service_account_email: ${{ secrets.DEV_FUJIMI_GCP_SA_EMAIL }}
+          service_account_key: ${{ secrets.DEV_FUJIMI_GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: storycap
+        run: yarn storycap
+
+      - name: remove comment to gitHub
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const {issue: {number: issue_number}, repo: {owner, repo}} = context;
+
+            const {data} = await github.rest.issues.listComments({issue_number, owner, repo});
+            data
+              .filter((item) => item.body.startsWith(':art: Visual Regression Test :art:'))
+              .forEach((item) => {
+                github.rest.issues.deleteComment({
+                  comment_id: item.id,
+                  owner,
+                  repo,
+                });
+              });
+
+      - name: add execa
+        run: yarn add execa@5.1.1
+
+      - name: cleanup GCS
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const execa = require('execa');
+
+            const {issue: {number: pull_number}, repo: {owner, repo}} = context;
+
+            const config = require('./regconfig.json');
+            const bucketName = config.plugins['reg-publish-gcs-plugin'].bucketName;
+
+            const {data} = await github.rest.pulls.listCommits({owner, repo, pull_number, per_page: 100});
+            for (const item of data) {
+              await execa.command(`gsutil -m rm -fr gs://${bucketName}/${item.sha}`).then(() => resolv()).catch(e => {});
+            }
+
+      - name: save GCS
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const execa = require('execa');
+
+            const config = require('./regconfig.json');
+            const bucketName = config.plugins['reg-publish-gcs-plugin'].bucketName;
+
+            execa.command(`gsutil cp -r ./__screenshots__/components gs://${bucketName}/${github.sha}/actual`).then(() => resolv()).catch(e => {});
