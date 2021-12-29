@@ -15,7 +15,7 @@
       "prComment": false
     },
     "reg-publish-gcs-plugin": {
-      "bucketName": "vrt"
+      "bucketName": "ria-vrt"
     }
   }
 }
