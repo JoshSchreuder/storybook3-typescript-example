@@ -1,0 +1,12 @@
+<script>
+  window.onload = function () {
+    // NOTE: VRTのみ実行される
+    if (!!window.emitCapture) {
+      const element = document.createElement('style');
+      element.type = 'text/css';
+      element.innerHTML =
+        '*, *::before, *::after { transition: none !important; animation: none !important; } input:focus { color: rgba(0,0,0,0) }';
+      document.body.appendChild(element);
+    }
+  };
+</script>

@@ -1,0 +1,21 @@
+{
+  "core": {
+    "workingDir": ".reg",
+    "actualDir": "__screenshots__",
+    "thresholdRate": 0.1,
+    "thresholdPixel": 2,
+    "enableAntialias": true,
+    "ximgdiff": {
+      "invocationType": "client"
+    }
+  },
+  "plugins": {
+    "reg-keygen-git-hash-plugin": true,
+    "reg-notify-github-plugin": {
+      "prComment": false
+    },
+    "reg-publish-gcs-plugin": {
+      "bucketName": "vrt"
+    }
+  }
+}

@@ -1,28 +1,40 @@
 {
-  "name": "storybook3-ts-example",
+  "name": "VRT",
   "version": "0.1.0",
   "private": true,
-  "dependencies": {
-    "@types/jest": "^20.0.6",
-    "@types/node": "^8.0.20",
-    "@types/react": "^16.0.2",
-    "@types/react-dom": "^15.5.2",
-    "@types/storybook__addon-actions": "^3.0.1",
-    "@types/storybook__addon-links": "^3.0.1",
-    "@types/storybook__react": "^3.0.3",
-    "react": "^15.6.1",
-    "react-dom": "^15.6.1",
-    "react-scripts-ts": "2.6.0"
+  "engines": {
+    "node": "16.13.1"
   },
   "scripts": {
-    "start": "react-scripts-ts start",
-    "build": "react-scripts-ts build",
-    "test": "react-scripts-ts test --env=jsdom",
-    "eject": "react-scripts-ts eject",
     "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook"
+    "build-storybook": "build-storybook",
+    "storycap": "storycap -C puppeteer --serverCmd \"yarn storybook\" http://localhost:6006 --serverTimeout 600000 --captureTimeout 10000 --reloadAfterChangeViewport",
+    "regression": "reg-suit run"
+  },
+  "dependencies": {
+    "react": "17.0.2",
+    "react-dom": "17.0.2"
   },
   "devDependencies": {
-    "@storybook/react": "^3.2.3"
+    "@storybook/addon-a11y": "6.4.9",
+    "@storybook/addon-actions": "6.4.9",
+    "@storybook/addon-backgrounds": "6.4.9",
+    "@storybook/addon-docs": "6.4.9",
+    "@storybook/addon-links": "6.4.9",
+    "@storybook/addon-postcss": "2.0.0",
+    "@storybook/addon-viewport": "6.4.9",
+    "@storybook/react": "^6.4.9",
+    "@types/react": "17.0.38",
+    "@types/react-dom": "17.0.11",
+    "gts": "3.1.0",
+    "prettier": "2.5.1",
+    "puppeteer": "12.0.1",
+    "reg-keygen-git-hash-plugin": "0.11.1",
+    "reg-notify-github-plugin": "0.11.1",
+    "reg-publish-gcs-plugin": "0.11.1",
+    "reg-suit": "0.11.1",
+    "storycap": "^3.1.0",
+    "ts-node": "^10.4.0",
+    "typescript": "4.5.4"
   }
 }
