@@ -17,5 +17,7 @@ jobs:
           ls ${{ github.workspace }}
       - run: echo "🍏 This job's status is ${{ job.status }}."
       - run: npm install
-      - run: npm run storybook
-      - run: axe https://www.deque.com
+      - name: run book
+        run: npm run storybook
+      - name: run axe
+        run: axe https://www.deque.com
